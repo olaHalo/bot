@@ -30,12 +30,17 @@ namespace KegBot
         [DllImport("user32.dll")]
         private static extern bool IsIconic(IntPtr hWnd);
 
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+
         //const uint SWP_NOSIZE = 0x0001;
-        
+
         const uint SWP_NOZORDER = 0x0004;
 
         //moveGwent finds the process and moves it
         //found here https://stackoverflow.com/questions/1364440/how-to-get-and-set-the-window-position-of-another-application-in-c-sharp
+        // and here http://blog.billsdon.com/2011/10/c-sharp-check-if-application-is-already-running-then-set-focus/
         public void moveGwent()
         {
             //Get the time and assign to variable timeNow
@@ -43,15 +48,31 @@ namespace KegBot
             DateTime timeNow = DateTime.Now;
 
             // Find (the first-in-Z-order) Notepad window.
-            IntPtr hWnd = FindWindow("ConsoleWindowClass", null);
 
-            // If found, position it.
+            //Define variables
+            IntPtr hWnd = FindWindow("ConsoleWindowClass", null);
+            const int swRestore = 9;
+            
+            
+
+            // If found, check if its minimized, bring it to front, move to 0, then resize
             if (hWnd != IntPtr.Zero)
             {
-                // Move the window to (0,0) 
-                // in the Z order.
+                //check if its minimized
+                if (IsIconic(hWnd))
+                {
+                    ShowWindowAsync(hWnd, swRestore);
+                }
+                // Move to foreground
+                
+                SetForegroundWindow(hWnd);
+
+                // Resize and move to corner
                 SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 250, 250, SWP_NOZORDER);
+
+                //Output to console for debugging
                 consoleRichTextBox1.Text += Environment.NewLine + timeNow + " : Window has been resized";
+                
 
             }
 
